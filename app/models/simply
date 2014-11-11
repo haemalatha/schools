@@ -1,0 +1,52 @@
+class ImportController < ApplicationController
+
+  def upload
+
+  end
+
+  def import_attempt
+    Moulding.import(params[:file],params[:students_list])
+    redirect_to import_path, notice: 'File uploaded successfully'
+  end
+
+end
+
+
+class Moulding < ActiveRecord::Base
+  require 'csv'
+  def self.import( file1 ,file2 )
+    CSV.foreach(file1.path, headers: true) do |row|
+
+      @school = School.create! row.to_hash.slice('SchoolSubDomain', 'SchoolName')
+      standards = row[2].split(',')
+      standards.each do |name|
+      @standard = @school.standards.create!(StandardName: name)
+      sections = row[3].split(',')
+      sections.each do |name|
+      @section = @standard.sections.create!(SectionName: name)
+
+      end
+
+
+      end
+    end
+
+    CSV.foreach(file2.path, headers: true) do |row|
+      value = row.to_hash
+      school = School.find_by( value.slice('SchoolSubDomain') )
+      section = school.sections.find_by( value.slice('SectionName') )
+      student = section.students.create( value.slice( 'AdmissionNumber', 'RollNumber', 'StudentName', 'Gender', 'DateOfBirth') )
+      parent = student.create_parent( value.slice( 'FatherName', 'FatherEmail', 'FatherMobile', 'MotherName', 'MotherEmail', 'MotherMobile','Address') )
+
+    end
+
+  end
+end
+
+
+
+<%= form_tag 'import_attempt', multipart:true do %>
+<label> Choose file <label><%= file_field_tag :file %>
+<label> Choose file <label><%= file_field_tag :students_list %>
+<%= submit_tag('import') %>
+<% end %>

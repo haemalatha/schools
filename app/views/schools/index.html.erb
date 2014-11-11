@@ -1,0 +1,12 @@
+<h2>Import Schools</h2>
+<h2> <%= flash[:notice] if flash[:notice].present? %> </h2>
+<h2> <%= flash[:error] if flash[:error].present? %> </h2>
+<%= form_tag import_path, multipart: true do %>
+
+    <%=  file_field_tag :file %>
+    <br>
+    <%= file_field_tag :Students_List %><br>
+    <br>
+        <%= submit_tag 'Import' %>
+<% end %>
+

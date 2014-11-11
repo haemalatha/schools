@@ -1,0 +1,85 @@
+creating School database
+
+1)get all the users for a particular school
+ans
+----
+2.1.3 :002 > School.first
+2.1.3 :003 > s=_
+2.1.3 :004 > s.users
+  User Load (0.3ms)  SELECT "users".* FROM "users"  WHERE "users"."school_id" = ?  [["school_id", 1]]
+ => #<ActiveRecord::Associations::CollectionProxy [#<User id: 1, name: "akash", gender: "male", role_id: 1, school_id: 1, city: "chennai", created_at: "2014-10-29 06:02:50", updated_at: "2014-10-29 06:02:50">, #<User id: 2, name: "anjana", gender: "female", role_id: 2, school_id: 1, city: "coimbatore", created_at: "2014-10-29 06:05:07", updated_at: "2014-10-29 06:05:07">]>
+===================================================================================================================================================================================================================================================================================================================================================================================================================================================================
+2)get all the male users in all schools.
+ans
+-----
+2.1.3 :006 > User.where("gender = ?", "male")
+  User Load (0.3ms)  SELECT "users".* FROM "users"  WHERE (gender = 'male')
+ => #<ActiveRecord::Relation [#<User id: 1, name: "akash", gender: "male", role_id: 1, school_id: 1, city: "chennai", created_at: "2014-10-29 06:02:50", updated_at: "2014-10-29 06:02:50">, #<User id: 4, name: "tamil", gender: "male", role_id: 2, school_id: 2, city: "erode", created_at: "2014-10-29 06:05:51", updated_at: "2014-10-29 06:05:51">]>
+
+3)get all principals from all schools
+
+2.1.3 :007 > User.where("role_id = ?", 1)
+  User Load (0.3ms)  SELECT "users".* FROM "users"  WHERE (role_id = 1)
+ => #<ActiveRecord::Relation [#<User id: 1, name: "akash", gender: "male", role_id: 1, school_id: 1, city: "chennai", created_at: "2014-10-29 06:02:50", updated_at: "2014-10-29 06:02:50">, #<User id: 3, name: "thendral", gender: "female", role_id: 1, school_id: 2, city: "salem", created_at: "2014-10-29 06:05:49", updated_at: "2014-10-29 06:05:49">]>
+
+(or)
+2.1.3 :167 >   School.all.map { |u| u.users.where(role_id: Role.find_by(designation: 'principal').id) }
+  School Load (0.3ms)  SELECT "schools".* FROM "schools"
+  Role Load (0.2ms)  SELECT  "roles".* FROM "roles"  WHERE "roles"."designation" = 'principal' LIMIT 1
+  Role Load (0.2ms)  SELECT  "roles".* FROM "roles"  WHERE "roles"."designation" = 'principal' LIMIT 1
+  User Load (0.2ms)  SELECT "users".* FROM "users"  WHERE "users"."school_id" = ? AND "users"."role_id" = 1  [["school_id", 1]]
+  User Load (0.1ms)  SELECT "users".* FROM "users"  WHERE "users"."school_id" = ? AND "users"."role_id" = 1  [["school_id", 2]]
+ => [#<ActiveRecord::AssociationRelation [#<User id: 1, name: "akash", gender: "male", role_id: 1, school_id: 1, city: "chennai", created_at: "2014-10-29 06:02:50", updated_at: "2014-10-29 06:02:50">]>, #<ActiveRecord::AssociationRelation [#<User id: 3, name: "thendral", gender: "female", role_id: 1, school_id: 2, city: "salem", created_at: "2014-10-29 06:05:49", updated_at: "2014-10-29 06:05:49">]>]
+
+
+4)get all 7th standard students from a particular school.
+ans
+2.1.3 :003 > School.first.standards.where(:name => "7th std").map {|s| s.sections.map { |p| p.students}}
+  School Load (0.2ms)  SELECT  "schools".* FROM "schools"   ORDER BY "schools"."id" ASC LIMIT 1
+  Standard Load (0.1ms)  SELECT "standards".* FROM "standards"  WHERE "standards"."school_id" = ? AND "standards"."name" = '7th std'  [["school_id", 1]]
+  Section Load (0.1ms)  SELECT "sections".* FROM "sections"  WHERE "sections"."standard_id" = ?  [["standard_id", 2]]
+  Student Load (0.2ms)  SELECT "students".* FROM "students"  WHERE "students"."section_id" = ?  [["section_id", 2]]
+  Student Load (0.1ms)  SELECT "students".* FROM "students"  WHERE "students"."section_id" = ?  [["section_id", 3]]
+ => [[#<ActiveRecord::Associations::CollectionProxy [#<Student id: 2, name: "babu", gender: "male", section_id: 2, city: "chennai", created_at: "2014-10-28 08:40:48", updated_at: "2014-10-28 08:40:48">, #<Student id: 3, name: "casper", gender: "male", section_id: 2, city: "coimbatore", created_at: "2014-10-28 08:41:41", updated_at: "2014-10-28 08:41:41">]>, #<ActiveRecord::Associations::CollectionProxy [#<Student id: 4, name: "diya", gender: "female", section_id: 3, city: "salem", created_at: "2014-10-28 08:43:00", updated_at: "2014-10-28 08:43:00">]>]]
+
+
+5)get all A sec male students in a particular school.
+ans
+
+2.1.3 :022 >  School.first.standards.map {|s| s.sections.where(:name => "A").map { |p| p.students.where(:gender => "male" )}}  School Load (0.3ms)  SELECT  "schools".* FROM "schools"   ORDER BY "schools"."id" ASC LIMIT 1
+  Standard Load (0.2ms)  SELECT "standards".* FROM "standards"  WHERE "standards"."school_id" = ?  [["school_id", 1]]
+  Section Load (0.1ms)  SELECT "sections".* FROM "sections"  WHERE "sections"."standard_id" = ? AND "sections"."name" = 'A'  [["standard_id", 1]]
+  Section Load (0.1ms)  SELECT "sections".* FROM "sections"  WHERE "sections"."standard_id" = ? AND "sections"."name" = 'A'  [["standard_id", 2]]
+  Section Load (0.1ms)  SELECT "sections".* FROM "sections"  WHERE "sections"."standard_id" = ? AND "sections"."name" = 'A'  [["standard_id", 3]]
+  Student Load (0.1ms)  SELECT "students".* FROM "students"  WHERE "students"."section_id" = ? AND "students"."gender" = 'male'  [["section_id", 1]]
+  Student Load (0.1ms)  SELECT "students".* FROM "students"  WHERE "students"."section_id" = ? AND "students"."gender" = 'male'  [["section_id", 2]]
+  Student Load (0.1ms)  SELECT "students".* FROM "students"  WHERE "students"."section_id" = ? AND "students"."gender" = 'male'  [["section_id", 4]]
+ => [[#<ActiveRecord::AssociationRelation []>], [#<ActiveRecord::AssociationRelation [#<Student id: 2, name: "babu", gender: "male", section_id: 2, city: "chennai", created_at: "2014-10-28 08:40:48", updated_at: "2014-10-28 08:40:48">, #<Student id: 3, name: "casper", gender: "male", section_id: 2, city: "coimbatore", created_at: "2014-10-28 08:41:41", updated_at: "2014-10-28 08:41:41">]>], [#<ActiveRecord::AssociationRelation [#<Student id: 5, name: "ezhil", gender: "male", section_id: 4, city: "karur", created_at: "2014-10-28 08:43:27", updated_at: "2014-10-28 08:43:27">]>]]
+
+
+6)count a male and female students from a particular school
+ans
+2.1.3 :168 > School.first.standards.map { |u| u.students.group(:gender).count}
+  School Load (0.2ms)  SELECT  "schools".* FROM "schools"   ORDER BY "schools"."id" ASC LIMIT 1
+  Standard Load (0.1ms)  SELECT "standards".* FROM "standards"  WHERE "standards"."school_id" = ?  [["school_id", 1]]
+   (0.3ms)  SELECT COUNT(*) AS count_all, gender AS gender FROM "students" INNER JOIN "sections" ON "students"."section_id" = "sections"."id" WHERE "sections"."standard_id" = ? GROUP BY gender  [["standard_id", 1]]
+   (0.1ms)  SELECT COUNT(*) AS count_all, gender AS gender FROM "students" INNER JOIN "sections" ON "students"."section_id" = "sections"."id" WHERE "sections"."standard_id" = ? GROUP BY gender  [["standard_id", 2]]
+   (0.1ms)  SELECT COUNT(*) AS count_all, gender AS gender FROM "students" INNER JOIN "sections" ON "students"."section_id" = "sections"."id" WHERE "sections"."standard_id" = ? GROUP BY gender  [["standard_id", 3]]
+ => [{"female"=>1}, {"female"=>1, "male"=>2}, {"male"=>1}]
+
+7)GET ALL PARENTS INFOMATION OF 7TH STANDARD STUDENTS OF A PARTICULAR SCHOOL.
+ans
+2.1.3 :084 >  School.first.standards.where(:name => "7th std").map {|s| s.sections.map { |p| p.students.map {|u| u.parents}}}
+  School Load (0.2ms)  SELECT  "schools".* FROM "schools"   ORDER BY "schools"."id" ASC LIMIT 1
+  Standard Load (0.2ms)  SELECT "standards".* FROM "standards"  WHERE "standards"."school_id" = ? AND "standards"."name" = '7th std'  [["school_id", 1]]
+  Section Load (0.1ms)  SELECT "sections".* FROM "sections"  WHERE "sections"."standard_id" = ?  [["standard_id", 2]]
+  Student Load (0.1ms)  SELECT "students".* FROM "students"  WHERE "students"."section_id" = ?  [["section_id", 2]]
+  Student Load (0.1ms)  SELECT "students".* FROM "students"  WHERE "students"."section_id" = ?  [["section_id", 3]]
+  Parent Load (0.3ms)  SELECT "parents".* FROM "parents"  WHERE "parents"."student_id" = ?  [["student_id", 2]]
+  Parent Load (0.1ms)  SELECT "parents".* FROM "parents"  WHERE "parents"."student_id" = ?  [["student_id", 3]]
+  Parent Load (0.1ms)  SELECT "parents".* FROM "parents"  WHERE "parents"."student_id" = ?  [["student_id", 4]]
+ => [[[#<ActiveRecord::Associations::CollectionProxy [#<Parent id: 2, name: "Mr.Aravind", student_id: 2, occupation: "Engineer", created_at: "2014-10-28 09:28:01", updated_at: "2014-10-28 09:28:01">]>, #<ActiveRecord::Associations::CollectionProxy [#<Parent id: 3, name: "Mr.Barani", student_id: 3, occupation: "Manager", created_at: "2014-10-28 09:28:42", updated_at: "2014-10-28 09:28:42">]>], [#<ActiveRecord::Associations::CollectionProxy [#<Parent id: 4, name: "Mr.Barhan", student_id: 4, occupation: "Researcher", created_at: "2014-10-28 09:29:17", updated_at: "2014-10-28 09:29:17">]>]]]
+
+
+
+
